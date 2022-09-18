@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>파일 업로드</title>
+    <style>
+      #root {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+      }
+
+      #outputDiv {
+        display: grid;
+        grid-template-columns: auto 200px;
+      }
+
+      #clearConsoleTextButton {
+        width: 240px;
+      }
+
+      textarea {
+        width: 100%;
+        height: 600px;
+        padding: 12px 20px;
+        box-sizing: border-box;
+        border: 2px solid #ccc;
+        border-radius: 4px;
+        background-color: #f8f8f8;
+        font-size: 16px;
+        resize: vertical;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root">
+      <div>
+        <label for="wsUrlInput">ws 주소:</label>
+        <input type="text" id="wsUrlInput" name="wsUrlInput" />
+        <button id="connectButton" onclick="connectChatServer()">연결</button>
+        <button id="disconnectButton" onclick="disconnectChatServer()">
+          끊기
+        </button>
+      </div>
+      <div>
+        <label for="restUrlInput">RestFul 주소:</label>
+        <input type="text" id="restUrlInput" name="restUrlInput" />
+      </div>
+      <div>
+        <label for="nameInput">이름:</label>
+        <input type="text" id="nameInput" name="nameInput" />
+        <button id="sendJoinButton" onclick="sendJoin()">참여!</button>
+        <input type="checkbox" id="rejoinCheckInput" name="rejoinCheckInput" />
+        <label for="rejoinCheckInput">이름 변경</label>
+      </div>
+      <div>
+        <label for="chatInput">채팅:</label>
+        <input type="text" id="chatInput" name="chatInput" />
+        <button id="sendChatButton" onclick="sendChat()">보내기</button>
+      </div>
+      <div>
+        <label for="imageFileInput">사진:</label>
+        <input
+          type="file"
+          id="imageFileInput"
+          name="imageFileInput"
+          accept="image/bmp, image/png, image/jpeg, image/gif, image/webp, image/avif"
+        />
+      </div>
+
+      <button id="clearConsoleTextButton" onclick="clearConsoleText()">
+        지우기
+      </button>
+      <div id="outputDiv">
+        <textarea id="consoleTextArea" readonly></textarea>
+        <div id="userListDiv"></div>
+      </div>
+      <img id="lastImage" alt="lastImage" />
+    </div>
+
+    <script>
+      const DEFAULT_WS_URL = "ws://127.0.0.1:3000";
+      const DEFAULT_RESTFUL_URL = "http://127.0.0.1:3000";
+
+      const wsUrlInput = document.getElementById("wsUrlInput");
+      const connectButton = document.getElementById("connectButton");
+      const disconnectButton = document.getElementById("disconnectButton");
+
+      const restUrlInput = document.getElementById("restUrlInput");
+
+      const nameInput = document.getElementById("nameInput");
+      const rejoinCheckInput = document.getElementById("rejoinCheckInput");
+      const sendJoinButton = document.getElementById("sendJoinButton");
+
+      const chatInput = document.getElementById("chatInput");
+      const sendChatButton = document.getElementById("sendChatButton");
+
+      const imageFileInput = document.getElementById("imageFileInput");
+
+      const outputDiv = document.getElementById("outputDiv");
+      const consoleTextArea = document.getElementById("consoleTextArea");
+      const userListDiv = document.getElementById("userListDiv");
+      const clearConsoleTextButton = document.getElementById(
+        "clearConsoleTextButton"
+      );
+      const lastImage = document.getElementById("lastImage");
+
+      let ws;
+      let users = [];
+
+      (function main() {
+        wsUrlInput.value = DEFAULT_WS_URL;
+        restUrlInput.value = DEFAULT_RESTFUL_URL;
+        toggleConnectButtons(false);
+      })();
+
+      function toggleConnectButtons(connected) {
+        connectButton.disabled = connected;
+        disconnectButton.disabled = !connected;
+      }
+
+      function connectChatServer() {
+        ws = new WebSocket(wsUrlInput.value);
+
+        ws.binaryType = "arraybuffer";
+        ws.onopen = function () {
+          addTextToConsoleText("😊 connected!");
+          toggleConnectButtons(true);
+          refreshUsers();
+        };
+
+        ws.onmessage = function (event) {
+          const reply = JSON.parse(event.data);
+          if (!reply || !reply.message) addTextToConsoleText("wrong message!");
+          if (reply.message === "broadcast:join") {
+            addTextToConsoleText(
+              `📢 ${reply.data.description} - ${reply.date}`
+            );
+            refreshUsers();
+          } else if (reply.message === "broadcast:leave") {
+            const user = users.find((user) => user.id === reply.data.id);
+            if (!user) return;
+            addTextToConsoleText(
+              `📢 ${user.name}(${reply.data.description}) - ${reply.date}`
+            );
+            refreshUsers();
+          } else if (reply.message === "broadcast:chat") {
+            const user = users.find((user) => user.id === reply.data.id);
+            if (!user) return;
+            addTextToConsoleText(
+              `[${user.name}]🗣️ ${reply.data.text} - ${reply.date}`
+            );
+            if (reply.data.imageUrl) lastImage.src = reply.data.imageUrl;
+          }
+        };
+
+        ws.onclose = function (event) {
+          addTextToConsoleText(
+            `😞 connection has closed by some reasons... code : ${event.code}`
+          );
+          toggleConnectButtons(false);
+        };
+
+        ws.onerror = function (event) {
+          addTextToConsoleText(`😞 got some error... code : ${event.code}`);
+        };
+      }
+
+      function disconnectChatServer() {
+        ws.close();
+        addTextToConsoleText("😞 bye...");
+      }
+
+      function sendJoin() {
+        if (!nameInput.value) return;
+        if (ws.readyState !== WebSocket.OPEN) return;
+
+        const request = {
+          message: "msg:join",
+          data: {
+            name: nameInput.value,
+            rejoin: rejoinCheckInput.checked ?? false,
+          },
+        };
+        ws.send(JSON.stringify(request));
+      }
+
+      function sendChat() {
+        if (!chatInput.value && !imageFileInput.files) return;
+        if (ws.readyState !== WebSocket.OPEN) return;
+
+        if (imageFileInput.files.length > 0) {
+          const file = imageFileInput.files[0];
+          const reader = new FileReader();
+          reader.onload = (event) => {
+            const request = {
+              message: "msg:chat",
+              data: {
+                text: chatInput.value ?? undefined,
+                imageUrl: event.target.result,
+              },
+            };
+            console.log(request);
+            ws.send(JSON.stringify(request));
+          };
+          reader.readAsDataURL(file);
+        } else {
+          const request = {
+            message: "msg:chat",
+            data: {
+              text: chatInput.value,
+            },
+          };
+          ws.send(JSON.stringify(request));
+        }
+      }
+
+      function addTextToConsoleText(newText) {
+        consoleTextArea.value += "\r\n";
+        consoleTextArea.value += newText;
+        consoleTextArea.scrollTop = consoleTextArea.scrollHeight;
+      }
+
+      function clearConsoleText() {
+        consoleTextArea.value = "";
+      }
+
+      function refreshUsers() {
+        if (!restUrlInput.value) return;
+        const userUrl = `${restUrlInput.value}/user`;
+        fetch(userUrl).then((response) => {
+          response.json().then((json) => {
+            users = json.data;
+            const ulElement = document.createElement("ul");
+            for (const user of users) {
+              const liElement = document.createElement("li");
+              liElement.textContent = `${user.name}(${user.id})`;
+              ulElement.appendChild(liElement);
+              userListDiv.innerHTML = "";
+              userListDiv.appendChild(ulElement);
+            }
+          });
+        });
+      }
+
+      function sendFile() {
+        var file = document.getElementById("filename").files[0];
+
+        var reader = new FileReader();
+
+        var rawData = new ArrayBuffer();
+
+        reader.loadend = function () {};
+
+        reader.onload = function (e) {
+          rawData = e.target.result;
+
+          ws.send(rawData);
+
+          alert("the File has been transferred.");
+        };
+
+        reader.readAsArrayBuffer(file);
+      }
+    </script>
+  </body>
+</html>
