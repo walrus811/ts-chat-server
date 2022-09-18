@@ -109,7 +109,7 @@ If you want to get more info about the format, please check the file [src/models
 | message     | data                                                                                                                                                                                               | after                      |
 | ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------- |
 | msg:join    | name - string, nick name <br/> rejoin - boolean?, if it's true, you can change your nick name with name param data.                                                                                | broadcast:join, reply:join |
-| msg:chat    | text - string, chat text message <br/>i mageUrl - [DataUrl](https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/Data_URLs), chat image message                                        | broadcast:chat             |
+| msg:chat    | text - string, chat text message <br/> imageUrl - [DataUrl](https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/Data_URLs), chat image message                                        | broadcast:chat             |
 | msg:to:chat | id - string, id to chat directly <br/> text - string, chat text message <br/> imageUrl - [DataUrl](https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/Data_URLs), chat image message | broadcast:chat             |
 
 > msg:\*:chat must have one content betwenn text or imageUrl!
