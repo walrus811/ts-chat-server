@@ -16,6 +16,7 @@ import path from 'path';
 import { UserResponseBody } from './models/HttpResponseBody';
 
 dotenv.config();
+const MAX_DATA_LOG_SLICE = 1024 * 1;
 const port = parseInt(process.env.PORT as string) || 3000;
 
 const app = express();
@@ -44,9 +45,11 @@ wss.on("connection", (ws: WebSocketWithId, req) =>
       return ws.close(WebSocketStatusCode.InternalError, "please report to admin!");
     }
 
+    console.info(`#${ws.id} get raw data, ${data.slice(0, MAX_DATA_LOG_SLICE).toString()}`);
+
     let requestBody = createMessageFromWsData(data);
     if (!requestBody)
-      return console.error(`can't parse message, ${data.toString()}`);
+      return console.error(`can't parse message, ${data.slice(0, MAX_DATA_LOG_SLICE).toString()}`);
 
     if (requestBody.message === "msg:join")
     {
@@ -185,6 +188,8 @@ wss.on("connection", (ws: WebSocketWithId, req) =>
 
     if (!userId)
       return console.error(`It can't be happened! there's no data of #${userId}`);
+
+    console.info(`#${userId} will be closed`);
 
     const broadcastLeaveMessage = createMessage<BroadcastLeaveMessageData>(
       "broadcast:leave",

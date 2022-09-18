@@ -37,31 +37,33 @@
   <body>
     <div id="root">
       <div>
-        <label for="wsUrlInput">ws 주소:</label>
+        <label for="wsUrlInput">ws address:</label>
         <input type="text" id="wsUrlInput" name="wsUrlInput" />
-        <button id="connectButton" onclick="connectChatServer()">연결</button>
+        <button id="connectButton" onclick="connectChatServer()">
+          connect
+        </button>
         <button id="disconnectButton" onclick="disconnectChatServer()">
-          끊기
+          close
         </button>
       </div>
       <div>
-        <label for="restUrlInput">RestFul 주소:</label>
+        <label for="restUrlInput">RestFul address:</label>
         <input type="text" id="restUrlInput" name="restUrlInput" />
       </div>
       <div>
-        <label for="nameInput">이름:</label>
+        <label for="nameInput">name:</label>
         <input type="text" id="nameInput" name="nameInput" />
-        <button id="sendJoinButton" onclick="sendJoin()">참여!</button>
+        <button id="sendJoinButton" onclick="sendJoin()">join!</button>
         <input type="checkbox" id="rejoinCheckInput" name="rejoinCheckInput" />
-        <label for="rejoinCheckInput">이름 변경</label>
+        <label for="rejoinCheckInput">change the name</label>
       </div>
       <div>
-        <label for="chatInput">채팅:</label>
+        <label for="chatInput">message:</label>
         <input type="text" id="chatInput" name="chatInput" />
-        <button id="sendChatButton" onclick="sendChat()">보내기</button>
+        <button id="sendChatButton" onclick="sendChat()">chat</button>
       </div>
       <div>
-        <label for="imageFileInput">사진:</label>
+        <label for="imageFileInput">picture:</label>
         <input
           type="file"
           id="imageFileInput"
@@ -71,7 +73,7 @@
       </div>
 
       <button id="clearConsoleTextButton" onclick="clearConsoleText()">
-        지우기
+        clear
       </button>
       <div id="outputDiv">
         <textarea id="consoleTextArea" readonly></textarea>
@@ -148,6 +150,7 @@
             refreshUsers();
           } else if (reply.message === "broadcast:chat") {
             const user = users.find((user) => user.id === reply.data.id);
+            console.log(user);
             if (!user) return;
             addTextToConsoleText(
               `[${user.name}]🗣️ ${reply.data.text} - ${reply.date}`

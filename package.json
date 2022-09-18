@@ -5,8 +5,10 @@
   "main": "dist/index.js",
   "scripts": {
     "env": "npx cpy ./env_default . --rename=.env",
-    "build": "npx tsc",
-    "start": "node .",
+    "build": "npx tsc && npx cpy ./src/test.html ./dist",
+    "start": "npm run build && pm2 start ecosystem.config.js",
+    "docker:clean": "npm run build &&  docker-compose build --no-cache && docker compose up -d",
+    "docker": "npm run build && docker compose up -d",
     "dev": "npx cross-env DEBUG=* npx nodemon"
   },
   "keywords": [],
