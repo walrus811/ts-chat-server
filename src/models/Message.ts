@@ -7,6 +7,11 @@ export default interface Message<T>
 
 export type MessageOnly = Pick<Message<undefined>, "message" | "date">;
 
+export interface MsgWelcomeMessageData
+{
+  id: string;
+}
+
 export interface MsgJoinMessageData
 {
   name: string;
@@ -15,6 +20,7 @@ export interface MsgJoinMessageData
 
 export interface BroadcastJoinMessageData
 {
+  id: string,
   description: string;
   rejoin?: boolean;
 }
@@ -59,6 +65,7 @@ export type MessageType =
   "broadcast:join" |
   "broadcast:leave" |
   "broadcast:chat" |
+  "reply:welcome" |
   "reply:joined" |
   "reply:to:chat" |
   "error:invalidReq" |

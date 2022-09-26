@@ -4,7 +4,7 @@ import morgan from 'morgan';
 import httpErrors, { HttpError } from 'http-errors';
 import http from 'http';
 import WebSocket, { WebSocketServer } from 'ws';
-import Message, { BroadcastJoinMessageData, MsgJoinMessageData, MessageType, MessageOnly, MsgChatMessageData, BroadcastChatMessageData, BroadcastLeaveMessageData, MsgToChatMessageData, ReplyToChatMessageData } from './models/Message';
+import Message, { BroadcastJoinMessageData, MsgJoinMessageData, MessageType, MessageOnly, MsgChatMessageData, BroadcastChatMessageData, BroadcastLeaveMessageData, MsgToChatMessageData, ReplyToChatMessageData, MsgWelcomeMessageData } from './models/Message';
 import ValueCell from './models/ValueCell';
 import User from './models/User';
 import _ from 'lodash';
@@ -37,6 +37,8 @@ wss.on("connection", (ws: WebSocketWithId, req) =>
 
   console.info(`#${ws.id} is connected from ${req.socket.remoteAddress}`);
 
+  const welcomeRequst = createMessage<MsgWelcomeMessageData>("reply:welcome", { id: ws.id });
+  ws.send(JSON.stringify(welcomeRequst));
   ws.on("message", function onMessage(data)
   {
     if (!ws.id)
@@ -94,6 +96,7 @@ wss.on("connection", (ws: WebSocketWithId, req) =>
       const broadcastJoinMessage = createMessage<BroadcastJoinMessageData>(
         "broadcast:join",
         {
+          id: ws.id,
           description: currentUser && requestData.rejoin ? `${currentUser.name}'s name has changed to ${newUserName}` : `📢 ${newUserName} has joined!`,
           rejoin: requestData.rejoin
         }
