@@ -118,7 +118,7 @@ If you want to get more info about the format, please check the file [src/models
 
 | message         | data                                                                                                                                                                                           | after |
 | --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----- |
-| broadcast:join  | description - string, the default welcome message for joining <br/>rejoin - boolean?, whether it's rejoin or not.                                                                              |       |
+| broadcast:join  | id - id joined as new<br/>description - string, the default welcome message for joining <br/>rejoin - boolean?, whether it's rejoin or not.                                                    |       |
 | broadcast:leave | id - string, user's id left <br/> description - string, the default message for leaving                                                                                                        |       |
 | broadcast:chat  | id - string, id sent the chat <br/> text - string, chat text message<br/> imageUrl - [DataUrl](https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/Data_URLs), chat image message |       |
 
@@ -126,6 +126,7 @@ If you want to get more info about the format, please check the file [src/models
 
 | message       | data                                                                                                                                                                                           | after |
 | ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----- |
+| reply:welcome | id - id issued by the server                                                                                                                                                                   |       |
 | reply:joined  |                                                                                                                                                                                                |       |
 | reply:to:chat | id - string, id sent the chat <br/> text - string, chat text message<br/> imageUrl - [DataUrl](https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/Data_URLs), chat image message |       |
 
